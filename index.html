@@ -1,0 +1,265 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+  <meta charset="UTF-8">
+  <title>Flashcard Belajar</title>
+
+  <style>
+    body {
+      font-family: "Poppins", sans-serif;
+      background: url('./img/bg.jpg') no-repeat center/cover;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      height: 100vh;
+      margin: 0;
+    }
+
+    .app {
+      background: #FAF7F2;
+      padding: 30px;
+      border-radius: 20px;
+      width: 320px;
+      text-align: center;
+      box-shadow: 0 12px 25px rgba(139, 111, 111, 0.25);
+    }
+
+    h2 {
+      margin-bottom: 20px;
+      color: #4A3F35;
+    }
+
+    .form {
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      margin-bottom: 20px;
+    }
+
+    input {
+      padding: 10px;
+      border-radius: 10px;
+      border: 1px solid #D6C7B8;
+      background: #FFFFFF;
+      color: #4A3F35;
+    }
+
+    .form-actions {
+      display: flex;
+      gap: 10px;
+    }
+
+    button {
+      flex: 1;
+      padding: 10px;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      cursor: pointer;
+      background: #C9A6A6;
+      color: white;
+      transition: 0.2s;
+    }
+
+    button:hover {
+      background: #B89292;
+    }
+
+    .danger {
+      background: #D8A1A1;
+    }
+
+    .danger:hover {
+      background: #C98E8E;
+    }
+
+    .card {
+      height: 280px;
+      perspective: 1000px;
+      margin-bottom: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+    }
+
+    .card-inner {
+      width: 320px;
+      height: 270px;
+      position: relative;
+      transition: transform 0.6s;
+      transform-style: preserve-3d;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+    }
+
+    .card.flipped .card-inner {
+      transform: rotateY(180deg);
+    }
+
+    .card-front,
+    .card-back {
+      position: absolute;
+      width: 285px;
+      height: 250px;
+      backface-visibility: hidden;
+      border-radius: 15px;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+      font-size: 18px;
+      text-align: center;
+      box-shadow: 0 8px 20px rgba(139, 111, 111, 0.2);
+    }
+
+    .card-front {
+      background: #EFE6D8;
+      color: #4A3F35;
+    }
+
+    .card-back {
+      background: #E7DBCF#e7d4d492;
+      color: #4A3F35;
+      transform: rotateY(180deg);
+    }
+
+    .buttons {
+      display: flex;
+      gap: 10px;
+    }
+
+    .counter {
+      margin-top: 15px;
+      font-size: 14px;
+      color: #7A6A5F;
+    }
+  </style>
+</head>
+
+<body>
+
+<div class="app">
+  <h2>Flashcards Methods</h2>
+
+  <div class="form">
+    <input type="text" id="frontInput" placeholder="Pertanyaan">
+    <input type="text" id="backInput" placeholder="Jawaban">
+
+    <div class="form-actions">
+      <button onclick="updateCard()">Save</button>
+      <button onclick="addCard()">Add</button>
+      <button class="danger" onclick="deleteCard()">Delete</button>
+    </div>
+  </div>
+
+  <div class="card" id="card">
+    <div class="card-inner">
+      <div class="card-front" id="frontText"></div>
+      <div class="card-back" id="backText"></div>
+    </div>
+  </div>
+
+  <div class="buttons">
+    <button onclick="prevCard()">‹ Prev</button>
+    <button onclick="nextCard()">Next ›</button>
+  </div>
+
+  <div class="counter" id="counter"></div>
+</div>
+
+<script>
+  const defaultCard = {
+    front: "Pertanyaan",
+    back: "Jawaban"
+  };
+
+  let flashcards = JSON.parse(localStorage.getItem("flashcards"));
+  if (!flashcards || flashcards.length === 0) {
+    flashcards = [{ ...defaultCard }];
+  }
+
+  let currentIndex = 0;
+
+  const card = document.getElementById("card");
+  const frontText = document.getElementById("frontText");
+  const backText = document.getElementById("backText");
+  const counter = document.getElementById("counter");
+  const frontInput = document.getElementById("frontInput");
+  const backInput = document.getElementById("backInput");
+
+  function loadCard() {
+    frontText.textContent = flashcards[currentIndex].front;
+    backText.textContent = flashcards[currentIndex].back;
+
+    frontInput.value = flashcards[currentIndex].front;
+    backInput.value = flashcards[currentIndex].back;
+
+    counter.textContent = `Kartu ${currentIndex + 1} dari ${flashcards.length}`;
+    card.classList.remove("flipped");
+  }
+
+  card.addEventListener("click", () => {
+    card.classList.toggle("flipped");
+  });
+
+  function nextCard() {
+    currentIndex = (currentIndex + 1) % flashcards.length;
+    loadCard();
+  }
+
+  function prevCard() {
+    currentIndex = (currentIndex - 1 + flashcards.length) % flashcards.length;
+    loadCard();
+  }
+
+  function updateCard() {
+    const front = frontInput.value.trim();
+    const back = backInput.value.trim();
+
+    if (!front && !back) {
+      flashcards[currentIndex] = { ...defaultCard };
+    } else {
+      flashcards[currentIndex] = {
+        front: front || defaultCard.front,
+        back: back || defaultCard.back
+      };
+    }
+
+    localStorage.setItem("flashcards", JSON.stringify(flashcards));
+    loadCard();
+  }
+
+  function addCard() {
+    flashcards.push({ ...defaultCard });
+    currentIndex = flashcards.length - 1;
+    localStorage.setItem("flashcards", JSON.stringify(flashcards));
+    loadCard();
+  }
+
+  function deleteCard() {
+    if (flashcards.length === 1) {
+      flashcards[0] = { ...defaultCard };
+      localStorage.setItem("flashcards", JSON.stringify(flashcards));
+      loadCard();
+      return;
+    }
+
+    const confirmDelete = confirm("Hapus flashcard ini?");
+    if (!confirmDelete) return;
+
+    flashcards.splice(currentIndex, 1);
+    if (currentIndex >= flashcards.length) {
+      currentIndex = flashcards.length - 1;
+    }
+
+    localStorage.setItem("flashcards", JSON.stringify(flashcards));
+    loadCard();
+  }
+
+  loadCard();
+</script>
+
+</body>
+  </html>
+  
